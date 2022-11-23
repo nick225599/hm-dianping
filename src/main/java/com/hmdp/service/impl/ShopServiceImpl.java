@@ -29,8 +29,9 @@ import static com.hmdp.utils.RedisConstants.CACHE_SHOP_TTL;
 @Service
 @Slf4j
 public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IShopService {
+
     @Resource
-    StringRedisTemplate stringRedisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
 
     @Override
     public Shop getById(Serializable id) {
