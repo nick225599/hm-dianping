@@ -35,19 +35,34 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 
     @Override
     public Shop getById(Serializable id) {
+
+        // 1. 查缓存
         String shopJson = stringRedisTemplate.opsForValue().get(CACHE_SHOP_KEY + id);
         if (StringUtils.isNotEmpty(shopJson)) {
             Shop shop = JSONUtil.toBean(shopJson, Shop.class);
             return shop;
-        } else {
-            Shop shop = super.getById(id);
-            if (null != shop) {
-                shopJson = JSONUtil.toJsonStr(shop);
-                stringRedisTemplate.opsForValue().set(CACHE_SHOP_KEY + id, shopJson,
-                        Duration.ofMinutes(CACHE_SHOP_TTL));
-            }
-            return shop;
         }
+
+        // 2. 缓存查不到查数据库
+        try {
+            TimeUnit.SECONDS.sleep(1L); // 模拟查数据库的高耗时
+        } catch (InterruptedException e) {
+            //TODO scs 发生 interruptedException 后，只打印下 log 线程还能继续执行吗？
+            log.warn(e.getMessage(), e);
+        }
+        Shop shop = super.getById(id);
+        if (null == shop) {
+            return null;
+        }
+
+        // 3. 写缓存
+        shopJson = JSONUtil.toJsonStr(shop);
+        stringRedisTemplate.opsForValue().set(CACHE_SHOP_KEY + id, shopJson,
+                Duration.ofMinutes(CACHE_SHOP_TTL));
+
+        // 4. 返回查询结果
+        return shop;
+
     }
 
     @Override
