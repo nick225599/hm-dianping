@@ -51,12 +51,12 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
             log.warn(e.getMessage(), e);
         }
         Shop shop = super.getById(id);
-        if (null == shop) {
-            return null;
-        }
 
         // 3. 写缓存
         shopJson = JSONUtil.toJsonStr(shop);
+        if(StringUtils.isEmpty(shopJson)){
+            shopJson = "{}";
+        }
         stringRedisTemplate.opsForValue().set(CACHE_SHOP_KEY + id, shopJson,
                 Duration.ofMinutes(CACHE_SHOP_TTL));
 
