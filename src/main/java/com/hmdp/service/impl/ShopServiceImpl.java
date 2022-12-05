@@ -16,7 +16,6 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import static com.hmdp.utils.RedisConstants.CACHE_SHOP_KEY;
-import static com.hmdp.utils.RedisConstants.CACHE_SHOP_TTL;
 
 /**
  * <p>
@@ -58,7 +57,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
             shopJson = "{}";
         }
         stringRedisTemplate.opsForValue().set(CACHE_SHOP_KEY + id, shopJson,
-                Duration.ofMinutes(CACHE_SHOP_TTL));
+                Duration.ofSeconds(3));
 
         // 4. 返回查询结果
         return shop;
