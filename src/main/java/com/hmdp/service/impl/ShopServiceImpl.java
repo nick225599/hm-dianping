@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.entity.Shop;
 import com.hmdp.mapper.ShopMapper;
 import com.hmdp.service.IShopService;
+import com.hmdp.utils.TmpObjectHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.Serializable;
 import java.time.Duration;
+import java.util.Calendar;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static com.hmdp.utils.RedisConstants.CACHE_SHOP_KEY;
@@ -32,36 +35,47 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
+    @Resource
+    private ExecutorService rebuildCacheExecutors;
+
     @Override
     public Shop getById(Serializable id) {
 
         // 1. 查缓存
+        TmpObjectHolder objHolder = null;
         String shopJson = stringRedisTemplate.opsForValue().get(CACHE_SHOP_KEY + id);
         if (StringUtils.isNotEmpty(shopJson)) {
-            Shop shop = JSONUtil.toBean(shopJson, Shop.class);
-            return shop;
+            objHolder = JSONUtil.toBean(shopJson, TmpObjectHolder.class);
         }
+        if (null == objHolder) objHolder = new TmpObjectHolder();
+        Shop shop;
+        if (objHolder.isExpired()) {
+            log.info("商户详情缓存过期，id：{}", id);
+            shop = ShopServiceImpl.super.getById(id);
 
-        // 2. 缓存查不到查数据库
-        try {
-            TimeUnit.SECONDS.sleep(1L); // 模拟查数据库的高耗时
-        } catch (InterruptedException e) {
-            //TODO scs 发生 interruptedException 后，只打印下 log 线程还能继续执行吗？
-            log.warn(e.getMessage(), e);
+            final TmpObjectHolder finalObjHolder = objHolder;
+
+            rebuildCacheExecutors.execute(() -> {
+                try {
+                    TimeUnit.SECONDS.sleep(1L);
+                } catch (InterruptedException e) {
+                    log.error(e.getMessage(), e);
+                }
+                Calendar c = Calendar.getInstance();
+                c.add(Calendar.SECOND, 3);
+                finalObjHolder.setExpiredTime(c.getTime());
+
+                finalObjHolder.setJsonObject(JSONUtil.toJsonStr(shop));
+                String temJson = JSONUtil.toJsonStr(finalObjHolder);
+                stringRedisTemplate.opsForValue().set(CACHE_SHOP_KEY + id, temJson,
+                        Duration.ofMinutes(3));
+            });
+
+        } else {
+            shop = JSONUtil.toBean(objHolder.getJsonObject(), Shop.class);
+
         }
-        Shop shop = super.getById(id);
-
-        // 3. 写缓存
-        shopJson = JSONUtil.toJsonStr(shop);
-        if(StringUtils.isEmpty(shopJson)){
-            shopJson = "{}";
-        }
-        stringRedisTemplate.opsForValue().set(CACHE_SHOP_KEY + id, shopJson,
-                Duration.ofSeconds(3));
-
-        // 4. 返回查询结果
         return shop;
-
     }
 
     @Override
