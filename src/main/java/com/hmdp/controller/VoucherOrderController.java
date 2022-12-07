@@ -20,6 +20,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class VoucherOrderController {
     @PostMapping("seckill/{id}")
     public Result seckillVoucher(@PathVariable("id") Long voucherId) {
+
+        // 1. 校验时间等信息
+        // 2. 事务开始
+        // 3. 减卖家库存
+        // 4. 增买家资产
+        // 5. 事务完成
+
+        //TODO scs 20221207 和 redis 有啥关系？？？
+
         return Result.fail("功能未完成");
     }
 }
