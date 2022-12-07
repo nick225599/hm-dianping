@@ -21,13 +21,12 @@ public class VoucherOrderController {
     @PostMapping("seckill/{id}")
     public Result seckillVoucher(@PathVariable("id") Long voucherId) {
 
-        // 1. 校验时间等信息
+        // 1. 校验时间，库存等信息
         // 2. 事务开始
-        // 3. 创建交易单，状态待支付
-        // 4. 减卖家库存
-        // 5. 增买家资产
-        // 6. 更新交易单，状态支付成功
-        // 7. 事务完成
+        // 3. 减卖家库存
+        // 4. 增买家资产
+        // 5. 创建交易单，状态支付成功
+        // 6. 事务完成
 
         //TODO scs 20221207 和 redis 有啥关系？？？
 
