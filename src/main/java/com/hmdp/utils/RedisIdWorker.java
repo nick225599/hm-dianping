@@ -41,6 +41,9 @@ public class RedisIdWorker {
         return timestamp << 32 // 左移 32 位，
                 // long 一共 64 位，左移 32 位则会丢弃原有的 32 位高位
                 // 并将低位的 32 位左移
-                | redisIdValue; // 或运算拼接上 < 0xFFFFFFFF 的自增 long
+                |
+                (
+                         0x0000FFFF &
+                        redisIdValue); // 或运算拼接上 < 0xFFFFFFFF 的自增 long
     }
 }
