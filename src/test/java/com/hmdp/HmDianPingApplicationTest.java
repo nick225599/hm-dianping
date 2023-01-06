@@ -5,17 +5,22 @@ import com.hmdp.utils.RedisIdWorker;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
 
 import static org.junit.Assert.*;
 
+//TODO scs 这么多乱七八糟的 SpringBoot Test 注解是怎么用的?
+@RunWith(SpringRunner.class)
+@ContextConfiguration(classes = HmDianPingApplication.class)
 @SpringBootTest
-@AutoConfigureMockMvc
 public class HmDianPingApplicationTest {
 
     @Before
