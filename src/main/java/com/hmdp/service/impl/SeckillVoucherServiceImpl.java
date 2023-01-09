@@ -10,6 +10,7 @@ import com.hmdp.service.IVoucherOrderService;
 import com.hmdp.utils.RedisIdWorker;
 import com.hmdp.utils.UserHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -32,6 +33,7 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
     private RedisIdWorker redisIdWorker;
 
     @Override
+    @Transactional // 没有任何配置，直接就能用，666
     public Result seckillVoucher(Long voucherId) {
 
         // 1. 校验时间，库存等信息
