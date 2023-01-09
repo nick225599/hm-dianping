@@ -50,7 +50,6 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         if (null == objHolder) objHolder = new TmpObjectHolder();
         Shop shop;
         if (objHolder.isExpired()) {
-            log.info("商户详情缓存过期，id：{}", id);
             shop = ShopServiceImpl.super.getById(id);
 
             final TmpObjectHolder finalObjHolder = objHolder;
@@ -62,7 +61,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
                     log.error(e.getMessage(), e);
                 }
                 Calendar c = Calendar.getInstance();
-                c.add(Calendar.SECOND, 3);
+                c.add(Calendar.MINUTE, 3);
                 finalObjHolder.setExpiredTime(c.getTime());
 
                 finalObjHolder.setJsonObject(JSONUtil.toJsonStr(shop));

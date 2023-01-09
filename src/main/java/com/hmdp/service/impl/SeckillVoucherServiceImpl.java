@@ -53,16 +53,19 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
         // 2. 事务开始 暂时不考虑
 
         // 3. 减卖家库存
-        int oriStock = voucher.getStock();
-        int newStock = oriStock - 1;
-        voucher.setStock(newStock);
-        boolean b1 = update().eq("voucher_id", voucherId).
-                eq("stock", oriStock)
-                .update(voucher);
+        LocalDateTime now = LocalDateTime.now();
+        SeckillVoucher updateDO = new SeckillVoucher();
+        updateDO.setVoucherId(voucherId);
+        updateDO.setStock(voucher.getStock() - 1);
+        boolean b1 = update().eq("voucher_id", voucherId)
+                .gt("stock", 0)
+                .lt("begin_time", now)
+                .gt("end_time", now)
+                .update(updateDO);
         if (!b1) {
             return Result.fail("扣减库存失败");
-
         }
+
         // 4. 增买家资产 暂时不考虑
         // 5. 创建交易单，状态支付成功
         //TODO scs 20230109 单号自增会有什么问题？
