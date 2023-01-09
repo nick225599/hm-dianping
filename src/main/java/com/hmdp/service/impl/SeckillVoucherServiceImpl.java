@@ -1,16 +1,14 @@
 package com.hmdp.service.impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.dto.Result;
 import com.hmdp.entity.SeckillVoucher;
-import com.hmdp.entity.User;
 import com.hmdp.entity.VoucherOrder;
 import com.hmdp.mapper.SeckillVoucherMapper;
 import com.hmdp.service.ISeckillVoucherService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.service.IVoucherOrderService;
 import com.hmdp.utils.RedisIdWorker;
 import com.hmdp.utils.UserHolder;
-import org.apache.ibatis.transaction.Transaction;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -41,25 +39,27 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
 
         LocalDateTime currentTime = LocalDateTime.now();
         LocalDateTime beginTime = voucher.getBeginTime();
-        if(currentTime.isBefore(beginTime)){
+        if (currentTime.isBefore(beginTime)) {
             return Result.fail("秒杀活动尚未开始");
         }
         LocalDateTime endTime = voucher.getEndTime();
-        if(currentTime.isAfter(endTime)){
+        if (currentTime.isAfter(endTime)) {
             return Result.fail("秒杀活动已经结束");
         }
-        if(voucher.getStock() <= 0){
+        if (voucher.getStock() <= 0) {
             return Result.fail("库存不足");
         }
 
         // 2. 事务开始 暂时不考虑
 
         // 3. 减卖家库存
-        voucher.setStock(voucher.getStock() - 1);
+        int oriStock = voucher.getStock();
+        int newStock = oriStock - 1;
+        voucher.setStock(newStock);
         boolean b1 = update().eq("voucher_id", voucherId).
-                eq("stock", voucher.getStock())
+                eq("stock", oriStock)
                 .update(voucher);
-        if(!b1){
+        if (!b1) {
             return Result.fail("扣减库存失败");
 
         }
@@ -69,11 +69,11 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
         Long orderId = redisIdWorker.nextId("orderId");
         VoucherOrder order = new VoucherOrder();
         order.setId(orderId);
-        order.setUserId(UserHolder.getUser().getId()) ;
+        order.setUserId(UserHolder.getUser().getId());
         order.setVoucherId(voucherId);
         order.setPayType(1);
         boolean b2 = voucherOrderService.save(order);
-        if(!b2){
+        if (!b2) {
             return Result.fail("创建订单失败");
         }
 
