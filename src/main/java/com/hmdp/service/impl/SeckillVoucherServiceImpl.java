@@ -73,7 +73,8 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
         order.setUserId(UserHolder.getUser().getId());
         order.setVoucherId(voucherId);
         order.setPayTime(LocalDateTime.now());
-        order.setPayType(1);
+        order.setPayType(1); // 支付方式 1：余额支付；2：支付宝；3：微信
+        order.setStatus(2); // 订单状态，1：未支付；2：已支付；3：已核销；4：已取消；5：退款中；6：已退款
         boolean b2 = voucherOrderService.save(order);
         if (!b2) {
             return Result.fail("创建订单失败");
