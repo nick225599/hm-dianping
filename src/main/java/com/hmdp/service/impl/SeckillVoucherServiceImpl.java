@@ -36,7 +36,6 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
 
         // 1. 校验时间，库存等信息
         SeckillVoucher voucher = query().eq("voucher_id", voucherId).one();
-
         LocalDateTime currentTime = LocalDateTime.now();
         LocalDateTime beginTime = voucher.getBeginTime();
         if (currentTime.isBefore(beginTime)) {
@@ -54,14 +53,13 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
 
         // 3. 减卖家库存
         LocalDateTime now = LocalDateTime.now();
-        SeckillVoucher updateDO = new SeckillVoucher();
-        updateDO.setVoucherId(voucherId);
-        updateDO.setStock(voucher.getStock() - 1);
-        boolean b1 = update().eq("voucher_id", voucherId)
+        boolean b1 = update()
+                .setSql("stock = stock - 1")
+                .eq("voucher_id", voucherId)
                 .gt("stock", 0)
                 .lt("begin_time", now)
                 .gt("end_time", now)
-                .update(updateDO);
+                .update();
         if (!b1) {
             return Result.fail("扣减库存失败");
         }
