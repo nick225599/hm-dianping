@@ -71,6 +71,7 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
         order.setId(orderId);
         order.setUserId(UserHolder.getUser().getId());
         order.setVoucherId(voucherId);
+        order.setPayTime(LocalDateTime.now());
         order.setPayType(1);
         boolean b2 = voucherOrderService.save(order);
         if (!b2) {
