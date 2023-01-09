@@ -28,9 +28,6 @@ public class VoucherOrderController {
     @PostMapping("seckill/{id}")
     public Result seckillVoucher(@PathVariable("id") Long voucherId) {
 
-
-
-        //TODO scs 20221207 和 redis 有啥关系？？？
         return seckillVoucherService.seckillVoucher(voucherId);
 
     }
