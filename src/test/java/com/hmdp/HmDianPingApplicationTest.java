@@ -62,6 +62,7 @@ public class HmDianPingApplicationTest {
         log.info("id set 总数：" + idSet.size());
         log.info("id queue 总数：" + idQueue.size());
         System.out.println();
+        es.shutdown();
     }
 
     @Test
