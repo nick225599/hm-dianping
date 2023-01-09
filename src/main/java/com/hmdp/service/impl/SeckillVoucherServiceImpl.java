@@ -79,7 +79,7 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
         order.setStatus(2); // 订单状态，1：未支付；2：已支付；3：已核销；4：已取消；5：退款中；6：已退款
         boolean b2 = voucherOrderService.save(order);
         if (!b2) {
-            return Result.fail("创建订单失败");
+            throw new RuntimeException("创建订单失败");
         }
 
         // 6. 事务完成
