@@ -39,4 +39,16 @@ public class SeckillVoucherServiceImplTest {
         System.out.println(str7 == str8); // true
         System.out.println(str7.equals(str8)); // true
     }
+
+    @Test
+    public void testStringFromJLS() {
+        String hello = "Hello", lo = "lo";
+        String otherHello = "Hello";
+        System.out.print((hello == "Hello") + " "); // true
+        System.out.print((otherHello == hello) + " "); // true
+        System.out.print((otherHello == hello) + " "); // true
+        System.out.print((hello == ("Hel"+"lo")) + " "); // true
+        System.out.print((hello == ("Hel"+lo)) + " "); // false
+        System.out.println(hello == ("Hel"+lo).intern()); // true
+    }
 }
