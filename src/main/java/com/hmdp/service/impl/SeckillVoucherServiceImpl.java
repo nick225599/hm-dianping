@@ -68,7 +68,9 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
 
         // 4. 增买家资产 暂时不考虑
         // 5. 创建交易单，状态支付成功
-        //TODO scs 20230109 单号自增会有什么问题？
+        // 单号自增会有什么问题？
+        // 好像也没啥问题。。。。
+        // 教程只是为了演示分布式 ID 的生成吧
         Long orderId = redisIdWorker.nextId("orderId");
         VoucherOrder order = new VoucherOrder();
         order.setId(orderId);
