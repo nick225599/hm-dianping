@@ -50,6 +50,12 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
         if (voucher.getStock() <= 0) {
             return Result.fail("库存不足");
         }
+        VoucherOrder tempOrder = voucherOrderService.query()
+                .eq("voucher_id", voucherId)
+                .eq("user_id", UserHolder.getUser().getId()).one();
+        if (null != tempOrder) {
+            return Result.fail("order exists");
+        }
 
         // 2. 事务开始 暂时不考虑
 
