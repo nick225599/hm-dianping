@@ -10,7 +10,6 @@ import com.hmdp.service.IVoucherOrderService;
 import com.hmdp.utils.RedisIdWorker;
 import com.hmdp.utils.UserHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -33,7 +32,6 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
     private RedisIdWorker redisIdWorker;
 
     @Override
-    @Transactional // 没有任何配置，直接就能用，666
     public Result seckillVoucher(Long voucherId) {
 
         // 1. 校验时间，库存等信息
@@ -50,14 +48,13 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
         if (voucher.getStock() <= 0) {
             return Result.fail("库存不足");
         }
-        VoucherOrder tempOrder = voucherOrderService.query()
+        // 限制一个用户一张券只能购买一次
+        int i = voucherOrderService.query()
                 .eq("voucher_id", voucherId)
-                .eq("user_id", UserHolder.getUser().getId()).one();
-        if (null != tempOrder) {
+                .eq("user_id", UserHolder.getUser().getId()).count();
+        if (i > 0) {
             return Result.fail("order exists");
         }
-
-        // 2. 事务开始 暂时不考虑
 
         // 3. 减卖家库存
         LocalDateTime now = LocalDateTime.now();
@@ -72,11 +69,7 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
             return Result.fail("扣减库存失败");
         }
 
-        // 4. 增买家资产 暂时不考虑
         // 5. 创建交易单，状态支付成功
-        // 单号自增会有什么问题？
-        // 好像也没啥问题。。。。
-        // 教程只是为了演示分布式 ID 的生成吧
         Long orderId = redisIdWorker.nextId("orderId");
         VoucherOrder order = new VoucherOrder();
         order.setId(orderId);
@@ -90,7 +83,6 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
             throw new RuntimeException("创建订单失败");
         }
 
-        // 6. 事务完成
         return Result.ok(orderId);
     }
 }
