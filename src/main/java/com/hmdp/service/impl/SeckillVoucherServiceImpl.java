@@ -53,7 +53,7 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
                 .eq("voucher_id", voucherId)
                 .eq("user_id", UserHolder.getUser().getId()).count();
         if (i > 0) {
-            return Result.fail("order exists");
+            throw new RuntimeException("购买受限，你已买过该券。一种券一个用户限购一张");
         }
 
         // 3. 减卖家库存
@@ -66,7 +66,7 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
                 .gt("end_time", now)
                 .update();
         if (!b1) {
-            return Result.fail("扣减库存失败");
+            throw new RuntimeException("扣减库存失败");
         }
 
         // 5. 创建交易单，状态支付成功
