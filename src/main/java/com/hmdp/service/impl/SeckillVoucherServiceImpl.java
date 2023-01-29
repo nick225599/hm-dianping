@@ -23,8 +23,7 @@ import java.time.LocalDateTime;
  * @since 2022-01-04
  */
 @Service
-public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper, SeckillVoucher>
-        implements ISeckillVoucherService {
+public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper, SeckillVoucher> implements ISeckillVoucherService {
 
     @Resource
     private IVoucherOrderService voucherOrderService;
@@ -33,57 +32,54 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
     private RedisIdWorker redisIdWorker;
 
     @Override
-    public synchronized Result seckillVoucher(Long voucherId) {
+    public Result seckillVoucher(Long voucherId) {
 
-        // 1. 校验时间，库存等信息
-        SeckillVoucher voucher = query().eq("voucher_id", voucherId).one();
-        LocalDateTime currentTime = LocalDateTime.now();
-        LocalDateTime beginTime = voucher.getBeginTime();
-        if (currentTime.isBefore(beginTime)) {
-            return Result.fail("秒杀活动尚未开始");
-        }
-        LocalDateTime endTime = voucher.getEndTime();
-        if (currentTime.isAfter(endTime)) {
-            return Result.fail("秒杀活动已经结束");
-        }
-        if (voucher.getStock() <= 0) {
-            return Result.fail("库存不足");
-        }
-        // 限制一个用户一张券只能购买一次
-        int i = voucherOrderService.query()
-                .eq("voucher_id", voucherId)
-                .eq("user_id", UserHolder.getUser().getId()).count();
-        if (i > 0) {
-            throw new RuntimeException("购买受限，你已买过该券。一种券一个用户限购一张");
-        }
+        Long orderId ;
 
-        // 3. 减卖家库存
-        LocalDateTime now = LocalDateTime.now();
-        boolean b1 = update()
-                .setSql("stock = stock - 1")
-                .eq("voucher_id", voucherId)
-                .gt("stock", 0)
-                .lt("begin_time", now)
-                .gt("end_time", now)
-                .update();
-        if (!b1) {
-            throw new RuntimeException("扣减库存失败");
-        }
+        Long userId = UserHolder.getUser().getId();
+        String strUserId = userId.toString().intern();
+        synchronized (strUserId) {
+            // 1. 校验时间，库存等信息
+            SeckillVoucher voucher = query().eq("voucher_id", voucherId).one();
+            LocalDateTime currentTime = LocalDateTime.now();
+            LocalDateTime beginTime = voucher.getBeginTime();
+            if (currentTime.isBefore(beginTime)) {
+                return Result.fail("秒杀活动尚未开始");
+            }
+            LocalDateTime endTime = voucher.getEndTime();
+            if (currentTime.isAfter(endTime)) {
+                return Result.fail("秒杀活动已经结束");
+            }
+            if (voucher.getStock() <= 0) {
+                return Result.fail("库存不足");
+            }
+            // 限制一个用户一张券只能购买一次
+            int i = voucherOrderService.query().eq("voucher_id", voucherId).eq("user_id", UserHolder.getUser().getId()).count();
+            if (i > 0) {
+                throw new RuntimeException("购买受限，你已买过该券。一种券一个用户限购一张");
+            }
 
-        // 5. 创建交易单，状态支付成功
-        Long orderId = redisIdWorker.nextId("orderId");
-        VoucherOrder order = new VoucherOrder();
-        order.setId(orderId);
-        order.setUserId(UserHolder.getUser().getId());
-        order.setVoucherId(voucherId);
-        order.setPayTime(LocalDateTime.now());
-        order.setPayType(1); // 支付方式 1：余额支付；2：支付宝；3：微信
-        order.setStatus(2); // 订单状态，1：未支付；2：已支付；3：已核销；4：已取消；5：退款中；6：已退款
-        boolean b2 = voucherOrderService.save(order);
-        if (!b2) {
-            throw new RuntimeException("创建订单失败");
-        }
+            // 3. 减卖家库存
+            LocalDateTime now = LocalDateTime.now();
+            boolean b1 = update().setSql("stock = stock - 1").eq("voucher_id", voucherId).gt("stock", 0).lt("begin_time", now).gt("end_time", now).update();
+            if (!b1) {
+                throw new RuntimeException("扣减库存失败");
+            }
 
+            // 5. 创建交易单，状态支付成功
+            orderId = redisIdWorker.nextId("orderId");
+            VoucherOrder order = new VoucherOrder();
+            order.setId(orderId);
+            order.setUserId(UserHolder.getUser().getId());
+            order.setVoucherId(voucherId);
+            order.setPayTime(LocalDateTime.now());
+            order.setPayType(1); // 支付方式 1：余额支付；2：支付宝；3：微信
+            order.setStatus(2); // 订单状态，1：未支付；2：已支付；3：已核销；4：已取消；5：退款中；6：已退款
+            boolean b2 = voucherOrderService.save(order);
+            if (!b2) {
+                throw new RuntimeException("创建订单失败");
+            }
+        }
         return Result.ok(orderId);
     }
 }
