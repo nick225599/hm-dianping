@@ -23,7 +23,8 @@ import java.time.LocalDateTime;
  * @since 2022-01-04
  */
 @Service
-public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper, SeckillVoucher> implements ISeckillVoucherService {
+public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper, SeckillVoucher>
+        implements ISeckillVoucherService {
 
     @Resource
     private IVoucherOrderService voucherOrderService;
@@ -32,7 +33,7 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
     private RedisIdWorker redisIdWorker;
 
     @Override
-    public Result seckillVoucher(Long voucherId) {
+    public synchronized Result seckillVoucher(Long voucherId) {
 
         // 1. 校验时间，库存等信息
         SeckillVoucher voucher = query().eq("voucher_id", voucherId).one();
