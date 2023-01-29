@@ -12,7 +12,7 @@ import javax.annotation.Resource;
 
 /**
  * <p>
- *  前端控制器
+ * 前端控制器
  * </p>
  *
  * @author 虎哥
@@ -27,8 +27,10 @@ public class VoucherOrderController {
 
     @PostMapping("seckill/{id}")
     public Result seckillVoucher(@PathVariable("id") Long voucherId) {
-
-        return seckillVoucherService.seckillVoucher(voucherId);
-
+        try {
+            return seckillVoucherService.seckillVoucher(voucherId);
+        } catch (Exception e) {
+            return Result.fail(e.getMessage());
+        }
     }
 }
