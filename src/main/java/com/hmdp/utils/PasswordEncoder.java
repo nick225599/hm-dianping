@@ -2,13 +2,35 @@ package com.hmdp.utils;
 
 
 import cn.hutool.core.util.RandomUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.util.DigestUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 
 public class PasswordEncoder {
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    public static void temp(){
+        try {
+            Date d = new Date();
+            String str = objectMapper.writeValueAsString(d);
+            System.out.println(str);
+
+            System.out.println(objectMapper.readValue(str, Date.class));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void main(String[] args) {
+        PasswordEncoder.temp();
+    }
+
     public static String encode(String password) {
+
         // 生成盐
         String salt = RandomUtil.randomString(20);
         // 加密
